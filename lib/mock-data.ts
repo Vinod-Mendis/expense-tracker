@@ -57,6 +57,46 @@ export const mockTransactions: Transaction[] = [
     category: "Transport",
     date: "2025-04-05",
   },
+  {
+    id: "8",
+    title: "Electric Bill",
+    amount: 95,
+    type: "expense",
+    category: "Housing",
+    date: "2025-04-02",
+  },
+  {
+    id: "9",
+    title: "Coffee Shop",
+    amount: 12,
+    type: "expense",
+    category: "Food",
+    date: "2025-04-09",
+  },
+  {
+    id: "10",
+    title: "Freelance Project",
+    amount: 1500,
+    type: "income",
+    category: "Work",
+    date: "2025-03-28",
+  },
+  {
+    id: "11",
+    title: "Spotify",
+    amount: 10,
+    type: "expense",
+    category: "Entertainment",
+    date: "2025-03-25",
+  },
+  {
+    id: "12",
+    title: "Doctor Visit",
+    amount: 60,
+    type: "expense",
+    category: "Health",
+    date: "2025-03-20",
+  },
 ];
 
 export const mockCategoryBreakdown: CategoryBreakdown[] = [
