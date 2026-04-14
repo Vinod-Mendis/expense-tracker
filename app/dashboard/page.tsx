@@ -25,12 +25,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">April 2025</p>
-      </div>
-
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
