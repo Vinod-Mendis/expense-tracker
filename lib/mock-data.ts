@@ -1,4 +1,10 @@
-import { Transaction, CategoryBreakdown, MonthlyData } from "./types";
+import {
+  Transaction,
+  CategoryBreakdown,
+  MonthlyData,
+  Budget,
+  Category,
+} from "./types";
 
 export const mockTransactions: Transaction[] = [
   {
@@ -115,3 +121,14 @@ export const mockMonthlyData: MonthlyData[] = [
   { month: "Mar", income: 6500, expenses: 4000 },
   { month: "Apr", income: 6500, expenses: 1870 },
 ];
+
+
+
+export const mockBudgets: Budget[] = [
+  { id: "1", category: "Housing", limit: 1500, spent: 1200 },
+  { id: "2", category: "Food", limit: 400, spent: 380 },
+  { id: "3", category: "Transport", limit: 150, spent: 32 },
+  { id: "4", category: "Entertainment", limit: 100, spent: 98 },
+  { id: "5", category: "Health", limit: 200, spent: 60 },
+];
+

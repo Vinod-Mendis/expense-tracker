@@ -28,3 +28,5 @@ export interface MonthlyData {
   income: number;
   expenses: number;
 }
+
+
