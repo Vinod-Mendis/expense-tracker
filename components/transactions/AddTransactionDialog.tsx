@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Transaction } from "@/lib/types";
+import { Transaction, Category } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
@@ -24,19 +24,10 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   onAdd: (t: Transaction) => void;
+  categories: Category[];
 }
 
-const CATEGORIES = [
-  "Work",
-  "Housing",
-  "Food",
-  "Transport",
-  "Entertainment",
-  "Health",
-  "Other",
-];
-
-export default function AddTransactionDialog({ onAdd }: Props) {
+export default function AddTransactionDialog({ onAdd, categories }: Props) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"income" | "expense">("expense");
   const [form, setForm] = useState({
@@ -134,9 +125,9 @@ export default function AddTransactionDialog({ onAdd }: Props) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.name}>
+                      {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

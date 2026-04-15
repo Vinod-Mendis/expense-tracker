@@ -1,21 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Transaction } from "@/lib/types";
-import { mockTransactions } from "@/lib/mock-data";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionTable from "@/components/transactions/TransactionTable";
 import AddTransactionDialog from "@/components/transactions/AddTransactionDialog";
-
-const CATEGORIES = [
-  "Work",
-  "Housing",
-  "Food",
-  "Transport",
-  "Entertainment",
-  "Health",
-  "Other",
-];
+import { Transaction, Category } from "@/lib/types";
+import { mockTransactions, mockCategories } from "@/lib/mock-data";
+import ManageCategoriesDialog from "@/components/categories/ManageCategoriesDialog";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] =
@@ -25,6 +16,11 @@ export default function TransactionsPage() {
   const [category, setCategory] = useState("all");
   const [sortField, setSortField] = useState<"date" | "amount">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const handleAddCategory = (c: Category) =>
+    setCategories((prev) => [...prev, c]);
+  const handleDeleteCategory = (id: string) =>
+    setCategories((prev) => prev.filter((c) => c.id !== id));
 
   const handleAdd = (t: Transaction) => setTransactions((prev) => [t, ...prev]);
   const handleDelete = (id: string) =>
@@ -68,7 +64,14 @@ export default function TransactionsPage() {
             {filtered.length} transactions
           </p>
         </div>
-        <AddTransactionDialog onAdd={handleAdd} />
+        <div className="flex items-center gap-2">
+          <ManageCategoriesDialog
+            categories={categories}
+            onAdd={handleAddCategory}
+            onDelete={handleDeleteCategory}
+          />
+          <AddTransactionDialog onAdd={handleAdd} categories={categories} />
+        </div>
       </div>
 
       {/* Summary */}
@@ -103,7 +106,7 @@ export default function TransactionsPage() {
         onSearchChange={setSearch}
         onTypeChange={setType}
         onCategoryChange={setCategory}
-        categories={CATEGORIES}
+        categories={categories}
       />
 
       {/* Table */}

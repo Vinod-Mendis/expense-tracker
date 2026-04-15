@@ -1,4 +1,5 @@
 "use client";
+import { Category } from "@/lib/types";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,7 @@ interface Props {
   onSearchChange: (v: string) => void;
   onTypeChange: (v: string) => void;
   onCategoryChange: (v: string) => void;
-  categories: string[];
+  categories: Category[];
 }
 
 export default function TransactionFilters({
@@ -59,8 +60,8 @@ export default function TransactionFilters({
         <SelectContent>
           <SelectItem value="all">All Categories</SelectItem>
           {categories.map((c) => (
-            <SelectItem key={c} value={c}>
-              {c}
+            <SelectItem key={c.id} value={c.name}>
+              {c.name}
             </SelectItem>
           ))}
         </SelectContent>

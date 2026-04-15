@@ -122,8 +122,6 @@ export const mockMonthlyData: MonthlyData[] = [
   { month: "Apr", income: 6500, expenses: 1870 },
 ];
 
-
-
 export const mockBudgets: Budget[] = [
   { id: "1", category: "Housing", limit: 1500, spent: 1200 },
   { id: "2", category: "Food", limit: 400, spent: 380 },
@@ -132,3 +130,11 @@ export const mockBudgets: Budget[] = [
   { id: "5", category: "Health", limit: 200, spent: 60 },
 ];
 
+export const mockCategories: Category[] = [
+  { id: "1", name: "Work", color: "#10b981", icon: "Briefcase" },
+  { id: "2", name: "Housing", color: "#3b82f6", icon: "Home" },
+  { id: "3", name: "Food", color: "#f97316", icon: "UtensilsCrossed" },
+  { id: "4", name: "Transport", color: "#8b5cf6", icon: "Car" },
+  { id: "5", name: "Entertainment", color: "#ec4899", icon: "Tv" },
+  { id: "6", name: "Health", color: "#ef4444", icon: "Heart" },
+];
