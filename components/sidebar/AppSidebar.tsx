@@ -8,8 +8,8 @@ import {
   Wallet,
   BarChart2,
   Settings,
-  TrendingUp,
   Gift,
+  TrendingUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Transactions", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Income", href: "/income", icon: TrendingUp },
   { label: "Budgets", href: "/budgets", icon: Wallet },
   { label: "Wishlist", href: "/wishlist", icon: Gift },
 ];

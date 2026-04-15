@@ -5,6 +5,7 @@ import {
   Budget,
   Category,
   WishlistItem,
+  Income,
 } from "./types";
 
 export const mockTransactions: Transaction[] = [
@@ -103,6 +104,44 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     category: "Health",
     date: "2025-03-20",
+  },
+];
+
+export const mockIncome: Income[] = [
+  {
+    id: "1",
+    title: "Monthly Salary",
+    amount: 4000,
+    category: "Salary",
+    date: "2025-04-01",
+  },
+  {
+    id: "2",
+    title: "Freelance Project",
+    amount: 2500,
+    category: "Freelance",
+    date: "2025-04-10",
+  },
+  {
+    id: "3",
+    title: "Stock Dividend",
+    amount: 320,
+    category: "Investment",
+    date: "2025-04-05",
+  },
+  {
+    id: "4",
+    title: "Side Project",
+    amount: 800,
+    category: "Freelance",
+    date: "2025-03-28",
+  },
+  {
+    id: "5",
+    title: "Bonus",
+    amount: 1000,
+    category: "Salary",
+    date: "2025-03-15",
   },
 ];
 
