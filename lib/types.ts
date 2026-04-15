@@ -1,5 +1,16 @@
 export type TransactionType = "income" | "expense";
 
+export type Priority = "low" | "medium" | "high";
+
+export interface WishlistItem {
+  id: string;
+  name: string;
+  price: number;
+  link?: string;
+  image?: string;
+  priority: Priority;
+  purchased: boolean;
+}
 export interface Transaction {
   id: string;
   title: string;

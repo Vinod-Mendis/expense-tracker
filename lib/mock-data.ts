@@ -4,6 +4,7 @@ import {
   MonthlyData,
   Budget,
   Category,
+  WishlistItem,
 } from "./types";
 
 export const mockTransactions: Transaction[] = [
@@ -137,4 +138,34 @@ export const mockCategories: Category[] = [
   { id: "4", name: "Transport", color: "#8b5cf6", icon: "Car" },
   { id: "5", name: "Entertainment", color: "#ec4899", icon: "Tv" },
   { id: "6", name: "Health", color: "#ef4444", icon: "Heart" },
+];
+
+export const mockWishlist: WishlistItem[] = [
+  {
+    id: "1",
+    name: "Sony WH-1000XM5",
+    price: 349,
+    link: "https://sony.com",
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+    priority: "high",
+    purchased: false,
+  },
+  {
+    id: "2",
+    name: "Mechanical Keyboard",
+    price: 150,
+    link: "https://amazon.com",
+    image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400",
+    priority: "medium",
+    purchased: false,
+  },
+  {
+    id: "3",
+    name: "Desk Lamp",
+    price: 45,
+    link: "https://ikea.com",
+    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400",
+    priority: "low",
+    purchased: true,
+  },
 ];
