@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import ReceiptUpload from "./ReceiptUpload";
 
 interface Props {
   onAdd: (income: Income) => void;
@@ -43,6 +44,11 @@ export default function AddIncomeDialog({ onAdd }: Props) {
     date: "",
     notes: "",
   });
+  const [receipt, setReceipt] = useState<{
+    file: File;
+    preview?: string;
+    type: "image" | "pdf";
+  } | null>(null);
 
   const handleSubmit = () => {
     if (!form.title || !form.amount || !form.category || !form.date) return;
@@ -53,8 +59,16 @@ export default function AddIncomeDialog({ onAdd }: Props) {
       category: form.category,
       date: form.date,
       notes: form.notes || undefined,
+      receipt: receipt
+        ? {
+            url: receipt.preview ?? URL.createObjectURL(receipt.file),
+            name: receipt.file.name,
+            type: receipt.type,
+          }
+        : undefined,
     });
     setForm({ title: "", amount: "", category: "", date: "", notes: "" });
+    setReceipt(null);
     setOpen(false);
   };
 
@@ -127,6 +141,15 @@ export default function AddIncomeDialog({ onAdd }: Props) {
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
             </div>
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label>
+              Receipt{" "}
+              <span className="text-muted-foreground font-normal">
+                (optional)
+              </span>
+            </Label>
+            <ReceiptUpload value={receipt} onChange={setReceipt} />
           </div>
           <Button
             onClick={handleSubmit}

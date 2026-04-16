@@ -9,6 +9,11 @@ export interface Income {
   category: string;
   date: string;
   notes?: string;
+  receipt?: {
+    url: string;
+    name: string;
+    type: "image" | "pdf";
+  };
 }
 export interface WishlistItem {
   id: string;

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Trash2, ArrowDownLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReceiptViewer from "./ReceiptViewer";
 
 interface Props {
   income: Income[];
@@ -74,6 +75,7 @@ export default function IncomeTable({
                 />
               </button>
             </TableHead>
+            <TableHead>Receipt</TableHead>
             <TableHead className="w-10"></TableHead>
           </TableRow>
         </TableHeader>
@@ -123,6 +125,9 @@ export default function IncomeTable({
               </TableCell>
               <TableCell className="text-sm font-semibold text-emerald-600">
                 +${i.amount.toLocaleString()}
+              </TableCell>
+              <TableCell>
+                <ReceiptViewer income={i} />
               </TableCell>
               <TableCell>
                 <Button
