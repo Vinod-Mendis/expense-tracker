@@ -1,5 +1,7 @@
 export type TransactionType = "income" | "expense";
 
+export type WishlistStatus = "not_started" | "saving" | "ready" | "purchased";
+
 export type Priority = "low" | "medium" | "high";
 
 export interface Income {
@@ -18,12 +20,19 @@ export interface Income {
 export interface WishlistItem {
   id: string;
   name: string;
-  price: number;
-  link?: string;
-  image?: string;
+  category: string;
+  description?: string;
+  totalPrice: number;
+  advancePaid: number;
+  progress: number;
+  monthlySaving: number;
   priority: Priority;
-  purchased: boolean;
+  deadline?: string;
+  status: WishlistStatus;
+  image?: string;
+  link?: string;
 }
+
 export interface Transaction {
   id: string;
   title: string;
