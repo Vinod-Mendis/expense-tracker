@@ -51,7 +51,7 @@ export default function WishlistPage() {
   }).length;
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl mx-auto">
+    <div className="p-6 space-y-5 mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -172,7 +172,7 @@ export default function WishlistPage() {
           <p className="text-sm">No items found.</p>
         </div>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {filtered.map((item) => (
             <WishlistCard
               key={item.id}

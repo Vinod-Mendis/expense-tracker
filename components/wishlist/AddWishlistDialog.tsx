@@ -87,7 +87,7 @@ export default function AddWishlistDialog({ onAdd, categories }: Props) {
           <Plus className="w-4 h-4" /> Add Item
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add Wishlist Item</DialogTitle>
         </DialogHeader>
