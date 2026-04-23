@@ -19,12 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import ReceiptUpload from "./ReceiptUpload";
 
-interface Props {
+interface AddProps {
   onAdd: (income: Income) => void;
+  income?: never;
+  onEdit?: never;
 }
+
+interface EditProps {
+  income: Income;
+  onEdit: (income: Income) => void;
+  onAdd?: never;
+}
+
+type Props = AddProps | EditProps;
 
 const INCOME_CATEGORIES = [
   "Salary",
@@ -35,7 +45,8 @@ const INCOME_CATEGORIES = [
   "Other",
 ];
 
-export default function AddIncomeDialog({ onAdd }: Props) {
+export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
+  const isEdit = !!income;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -50,10 +61,27 @@ export default function AddIncomeDialog({ onAdd }: Props) {
     type: "image" | "pdf";
   } | null>(null);
 
+  const handleOpenChange = (v: boolean) => {
+    if (v && isEdit) {
+      setForm({
+        title: income.title,
+        amount: income.amount.toString(),
+        category: income.category,
+        date: income.date,
+        notes: income.notes ?? "",
+      });
+    }
+    if (!v) {
+      if (!isEdit) setForm({ title: "", amount: "", category: "", date: "", notes: "" });
+      setReceipt(null);
+    }
+    setOpen(v);
+  };
+
   const handleSubmit = () => {
     if (!form.title || !form.amount || !form.category || !form.date) return;
-    onAdd({
-      id: Date.now().toString(),
+    const data: Income = {
+      id: income?.id ?? Date.now().toString(),
       title: form.title,
       amount: parseFloat(form.amount),
       category: form.category,
@@ -65,23 +93,38 @@ export default function AddIncomeDialog({ onAdd }: Props) {
             name: receipt.file.name,
             type: receipt.type,
           }
-        : undefined,
-    });
-    setForm({ title: "", amount: "", category: "", date: "", notes: "" });
+        : income?.receipt,
+    };
+    if (isEdit) {
+      onEdit(data);
+    } else {
+      onAdd(data);
+      setForm({ title: "", amount: "", category: "", date: "", notes: "" });
+    }
     setReceipt(null);
     setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
-          <Plus className="w-4 h-4" /> Add Income
-        </Button>
+        {isEdit ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-7 h-7 text-muted-foreground hover:text-blue-500"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+        ) : (
+          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
+            <Plus className="w-4 h-4" /> Add Income
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Income</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Income" : "Add Income"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-3">
@@ -155,7 +198,7 @@ export default function AddIncomeDialog({ onAdd }: Props) {
             onClick={handleSubmit}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
           >
-            Add Income
+            {isEdit ? "Save Changes" : "Add Income"}
           </Button>
         </div>
       </DialogContent>
