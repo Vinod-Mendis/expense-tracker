@@ -33,7 +33,7 @@ function mapDoc(doc: any): Income {
     date: doc.date,
     notes: doc.notes,
     receipt: doc.receiptUrl
-      ? { url: doc.receiptUrl, name: doc.receiptName ?? "", type: "image" }
+      ? { url: doc.receiptUrl, name: doc.receiptName ?? "", type: "image" as const }
       : undefined,
   };
 }
@@ -122,7 +122,7 @@ export default function IncomePage() {
     filtered.length > 0 ? Math.round(total / filtered.length) : 0;
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl mx-auto">
+    <div className="p-6 space-y-5 mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Income</h1>

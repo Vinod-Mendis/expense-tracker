@@ -14,7 +14,7 @@ export interface Income {
   receipt?: {
     url: string;
     name: string;
-    type: "image" | "pdf";
+    type: "image";
   };
 }
 export interface WishlistItem {

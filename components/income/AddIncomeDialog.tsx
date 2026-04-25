@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Loader2 } from "lucide-react";
 import ReceiptUpload from "./ReceiptUpload";
 
 interface AddProps {
@@ -58,8 +58,10 @@ export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
   const [receipt, setReceipt] = useState<{
     file: File;
     preview?: string;
-    type: "image" | "pdf";
+    type: "image";
   } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleOpenChange = (v: boolean) => {
     if (v && isEdit) {
@@ -74,12 +76,34 @@ export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
     if (!v) {
       if (!isEdit) setForm({ title: "", amount: "", category: "", date: "", notes: "" });
       setReceipt(null);
+      setUploadError(null);
     }
     setOpen(v);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.title || !form.amount || !form.category || !form.date) return;
+
+    setSubmitting(true);
+    setUploadError(null);
+
+    let receiptData = income?.receipt;
+
+    if (receipt?.file) {
+      const formData = new FormData();
+      formData.append("file", receipt.file);
+      formData.append("folder", "income");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        setUploadError("Failed to upload receipt. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+      const { url, name } = await res.json();
+      receiptData = { url, name, type: "image" };
+    }
+
     const data: Income = {
       id: income?.id ?? Date.now().toString(),
       title: form.title,
@@ -87,14 +111,9 @@ export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
       category: form.category,
       date: form.date,
       notes: form.notes || undefined,
-      receipt: receipt
-        ? {
-            url: receipt.preview ?? URL.createObjectURL(receipt.file),
-            name: receipt.file.name,
-            type: receipt.type,
-          }
-        : income?.receipt,
+      receipt: receiptData,
     };
+
     if (isEdit) {
       onEdit(data);
     } else {
@@ -102,6 +121,7 @@ export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
       setForm({ title: "", amount: "", category: "", date: "", notes: "" });
     }
     setReceipt(null);
+    setSubmitting(false);
     setOpen(false);
   };
 
@@ -192,13 +212,31 @@ export default function AddIncomeDialog({ onAdd, income, onEdit }: Props) {
                 (optional)
               </span>
             </Label>
+            {isEdit && income.receipt && !receipt && (
+              <p className="text-xs text-muted-foreground">
+                Current: {income.receipt.name} — upload a new image to replace
+              </p>
+            )}
             <ReceiptUpload value={receipt} onChange={setReceipt} />
           </div>
+          {uploadError && (
+            <p className="text-sm text-red-500">{uploadError}</p>
+          )}
           <Button
             onClick={handleSubmit}
+            disabled={submitting}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
           >
-            {isEdit ? "Save Changes" : "Add Income"}
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {receipt ? "Uploading..." : "Saving..."}
+              </>
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Add Income"
+            )}
           </Button>
         </div>
       </DialogContent>
