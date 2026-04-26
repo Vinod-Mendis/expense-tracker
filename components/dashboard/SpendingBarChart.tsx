@@ -1,40 +1,56 @@
 "use client";
 
+import { useState } from "react";
 import { MonthlyData } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
+  Filler,
   Tooltip,
-  ResponsiveContainer,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 interface Props {
-  data: MonthlyData[];
+  weeklyData: MonthlyData[];
+  sixMonthData: MonthlyData[];
 }
 
-export default function SpendingBarChart({ data }: Props) {
+type Period = "week" | "6months";
+
+export default function SpendingBarChart({ weeklyData, sixMonthData }: Props) {
+  const [period, setPeriod] = useState<Period>("week");
+  const data = period === "week" ? weeklyData : sixMonthData;
+
   const chartData = {
     labels: data.map((d) => d.month),
     datasets: [
       {
         label: "Income",
         data: data.map((d) => d.income),
-        backgroundColor: "#10b981",
-        borderRadius: 6,
-        barPercentage: 0.5,
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16,185,129,0.08)",
+        pointBackgroundColor: "#10b981",
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
       },
       {
         label: "Expenses",
         data: data.map((d) => d.expenses),
-        backgroundColor: "#e5e7eb",
-        borderRadius: 6,
-        barPercentage: 0.5,
+        borderColor: "#f87171",
+        backgroundColor: "rgba(248,113,113,0.08)",
+        pointBackgroundColor: "#f87171",
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
       },
     ],
   };
@@ -53,10 +69,12 @@ export default function SpendingBarChart({ data }: Props) {
     scales: {
       x: { grid: { display: false }, border: { display: false } },
       y: {
+        min: 0,
         grid: { color: "#f3f4f6" },
         border: { display: false },
         ticks: {
-          callback: (v: any) => `$${(v / 1000).toFixed(0)}k`,
+          callback: (v: any) =>
+            v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`,
         },
       },
     },
@@ -69,20 +87,44 @@ export default function SpendingBarChart({ data }: Props) {
           <CardTitle className="text-base font-semibold">
             Income vs Expenses
           </CardTitle>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />{" "}
-              Income
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-gray-200 inline-block" />{" "}
-              Expenses
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="flex rounded-md border border-zinc-200 dark:border-zinc-700 overflow-hidden text-xs">
+              <button
+                onClick={() => setPeriod("week")}
+                className={`px-3 py-1 transition-colors ${
+                  period === "week"
+                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setPeriod("6months")}
+                className={`px-3 py-1 transition-colors ${
+                  period === "6months"
+                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                6 Months
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                Income
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />
+                Expenses
+              </span>
+            </div>
           </div>
         </div>
       </CardHeader>
       <CardContent className="h-56">
-        <Bar data={chartData} options={options as any} />
+        <Line data={chartData} options={options as any} />
       </CardContent>
     </Card>
   );

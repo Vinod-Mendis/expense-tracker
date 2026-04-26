@@ -3,14 +3,75 @@ import StatCard from "@/components/dashboard/StatCard";
 import SpendingBarChart from "@/components/dashboard/SpendingBarChart";
 import ExpenseDonutChart from "@/components/dashboard/ExpenseDonutChart";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import { mockCategoryBreakdown, mockMonthlyData } from "@/lib/mock-data";
+import { COLOR_OPTIONS } from "@/lib/category-icons";
 import clientPromise from "@/lib/mongodb";
-import { Transaction } from "@/lib/types";
+import { Transaction, CategoryBreakdown, MonthlyData } from "@/lib/types";
+
+function buildWeeklyData(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  txDocs: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  incomeDocs: any[],
+): MonthlyData[] {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const today = new Date();
+  const result: MonthlyData[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const label = days[d.getDay()];
+    const dateStr = d.toISOString().slice(0, 10);
+    const income =
+      txDocs
+        .filter((t) => t.type === "income" && t.date?.slice(0, 10) === dateStr)
+        .reduce((s: number, t) => s + t.amount, 0) +
+      incomeDocs
+        .filter((t) => t.date?.slice(0, 10) === dateStr)
+        .reduce((s: number, t) => s + t.amount, 0);
+    const expenses = txDocs
+      .filter((t) => t.type === "expense" && t.date?.slice(0, 10) === dateStr)
+      .reduce((s: number, t) => s + t.amount, 0);
+    result.push({ month: label, income, expenses });
+  }
+  return result;
+}
+
+function buildSixMonthData(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  txDocs: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  incomeDocs: any[],
+): MonthlyData[] {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const today = new Date();
+  const result: MonthlyData[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const income =
+      txDocs
+        .filter((t) => t.type === "income" && t.date?.slice(0, 7) === prefix)
+        .reduce((s: number, t) => s + t.amount, 0) +
+      incomeDocs
+        .filter((t) => t.date?.slice(0, 7) === prefix)
+        .reduce((s: number, t) => s + t.amount, 0);
+    const expenses = txDocs
+      .filter((t) => t.type === "expense" && t.date?.slice(0, 7) === prefix)
+      .reduce((s: number, t) => s + t.amount, 0);
+    result.push({ month: monthNames[m], income, expenses });
+  }
+  return result;
+}
 
 async function getDashboardData(): Promise<{
   recent: Transaction[];
   totalIncome: number;
   totalExpenses: number;
+  categoryBreakdown: CategoryBreakdown[];
+  weeklyData: MonthlyData[];
+  sixMonthData: MonthlyData[];
 }> {
   try {
     const client = await clientPromise;
@@ -22,10 +83,34 @@ async function getDashboardData(): Promise<{
     ]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const txIncome = txDocs.filter((d: any) => d.type === "income").reduce((s, d) => s + d.amount, 0);
+    const txIncome = txDocs
+      .filter((d: any) => d.type === "income")
+      .reduce((s, d) => s + d.amount, 0);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const txExpenses = txDocs.filter((d: any) => d.type === "expense").reduce((s, d) => s + d.amount, 0);
+    const txExpenses = txDocs
+      .filter((d: any) => d.type === "expense")
+      .reduce((s, d) => s + d.amount, 0);
     const incomeTotal = incomeDocs.reduce((s, d) => s + d.amount, 0);
+
+    // Build category breakdown from expense transactions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const categoryMap = new Map<string, number>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    txDocs
+      .filter((d: any) => d.type === "expense")
+      .forEach((d: any) => {
+        const cat = d.category || "Other";
+        categoryMap.set(cat, (categoryMap.get(cat) ?? 0) + d.amount);
+      });
+    const categoryBreakdown: CategoryBreakdown[] = Array.from(
+      categoryMap.entries(),
+    )
+      .sort((a, b) => b[1] - a[1])
+      .map(([category, amount], i) => ({
+        category,
+        amount,
+        color: COLOR_OPTIONS[i % COLOR_OPTIONS.length],
+      }));
 
     // Merge both into one list for recent feed, sorted by date descending
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,21 +141,34 @@ async function getDashboardData(): Promise<{
       recent: allRecent,
       totalIncome: txIncome + incomeTotal,
       totalExpenses: txExpenses,
+      categoryBreakdown,
+      weeklyData: buildWeeklyData(txDocs, incomeDocs),
+      sixMonthData: buildSixMonthData(txDocs, incomeDocs),
     };
   } catch {
-    return { recent: [], totalIncome: 0, totalExpenses: 0 };
+    return {
+      recent: [],
+      totalIncome: 0,
+      totalExpenses: 0,
+      categoryBreakdown: [],
+      weeklyData: [],
+      sixMonthData: [],
+    };
   }
 }
 
 export default async function DashboardPage() {
-  const { recent, totalIncome, totalExpenses } = await getDashboardData();
+  const { recent, totalIncome, totalExpenses, categoryBreakdown, weeklyData, sixMonthData } =
+    await getDashboardData();
 
   const balance = totalIncome - totalExpenses;
   const savingsRate =
-    totalIncome > 0 ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100) : 0;
+    totalIncome > 0
+      ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100)
+      : 0;
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="p-6 space-y-6 mx-auto">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Balance"
@@ -106,9 +204,9 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <SpendingBarChart data={mockMonthlyData} />
+          <SpendingBarChart weeklyData={weeklyData} sixMonthData={sixMonthData} />
         </div>
-        <ExpenseDonutChart data={mockCategoryBreakdown} />
+        <ExpenseDonutChart data={categoryBreakdown} />
       </div>
 
       <RecentTransactions transactions={recent} />
