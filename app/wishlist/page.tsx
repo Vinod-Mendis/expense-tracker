@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WishlistItem, Priority, WishlistStatus, Category } from "@/lib/types";
-import { mockWishlist, mockCategories } from "@/lib/mock-data";
+import { mockCategories } from "@/lib/mock-data";
 import WishlistCard from "@/components/wishlist/WishlistCard";
 import WishlistListView from "@/components/wishlist/WishlistListView";
 import AddWishlistDialog from "@/components/wishlist/AddWishlistDialog";
@@ -17,24 +17,67 @@ import { Button } from "@/components/ui/button";
 import { Gift, LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// mock current balance — will come from real data later
 const CURRENT_BALANCE = 5025;
 
+function docToItem(d: any): WishlistItem {
+  return {
+    id: String(d._id),
+    name: d.name,
+    category: d.category,
+    description: d.description,
+    totalPrice: d.totalPrice,
+    advancePaid: d.advancePaid,
+    progress: d.progress,
+    monthlySaving: d.monthlySaving,
+    priority: d.priority,
+    deadline: d.deadline,
+    status: d.status,
+    image: d.image,
+    link: d.link,
+  };
+}
+
 export default function WishlistPage() {
-  const [items, setItems] = useState<WishlistItem[]>(mockWishlist);
+  const [items, setItems] = useState<WishlistItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categories] = useState<Category[]>(mockCategories);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [statusFilter, setStatusFilter] = useState<"all" | WishlistStatus>(
-    "all",
-  );
+  const [statusFilter, setStatusFilter] = useState<"all" | WishlistStatus>("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | Priority>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const handleAdd = (item: WishlistItem) => setItems((prev) => [item, ...prev]);
-  const handleDelete = (id: string) =>
-    setItems((prev) => prev.filter((i) => i.id !== id));
-  const handleUpdateProgress = (id: string, progress: number) =>
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, progress } : i)));
+  useEffect(() => {
+    fetch("/api/wishlist")
+      .then((r) => r.json())
+      .then((data) => setItems(data.map(docToItem)))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = async (item: WishlistItem) => {
+    const res = await fetch("/api/wishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) {
+      const saved = await res.json();
+      setItems((prev) => [docToItem(saved), ...prev]);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const res = await fetch(`/api/wishlist/${id}`, { method: "DELETE" });
+    if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleUpdateProgress = async (id: string, progress: number) => {
+    const res = await fetch(`/api/wishlist/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ progress }),
+    });
+    if (res.ok) setItems((prev) => prev.map((i) => (i.id === id ? { ...i, progress } : i)));
+  };
 
   const filtered = items
     .filter((i) => statusFilter === "all" || i.status === statusFilter)
@@ -65,23 +108,23 @@ export default function WishlistPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Total Items</p>
           <p className="text-xl font-semibold mt-0.5">{items.length}</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Total Value</p>
           <p className="text-xl font-semibold mt-0.5">
             ${totalValue.toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Total Saved</p>
           <p className="text-xl font-semibold text-emerald-600 mt-0.5">
             ${totalSaved.toLocaleString()}
           </p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Can Buy Now</p>
           <p className="text-xl font-semibold text-emerald-600 mt-0.5">
             {canBuyCount} items
@@ -96,7 +139,7 @@ export default function WishlistPage() {
             value={statusFilter}
             onValueChange={(v) => setStatusFilter(v as any)}
           >
-            <SelectTrigger className="w-36 bg-white">
+            <SelectTrigger className="w-36 bg-white dark:bg-zinc-900">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -112,7 +155,7 @@ export default function WishlistPage() {
             value={priorityFilter}
             onValueChange={(v) => setPriorityFilter(v as any)}
           >
-            <SelectTrigger className="w-36 bg-white">
+            <SelectTrigger className="w-36 bg-white dark:bg-zinc-900">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -124,7 +167,7 @@ export default function WishlistPage() {
           </Select>
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-36 bg-white">
+            <SelectTrigger className="w-36 bg-white dark:bg-zinc-900">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -139,7 +182,7 @@ export default function WishlistPage() {
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center border rounded-lg overflow-hidden bg-white">
+        <div className="flex items-center border rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
           <Button
             variant="ghost"
             size="sm"
@@ -166,7 +209,11 @@ export default function WishlistPage() {
       </div>
 
       {/* Content */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
+          Loading...
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Gift className="w-10 h-10 mb-3 opacity-30" />
           <p className="text-sm">No items found.</p>
