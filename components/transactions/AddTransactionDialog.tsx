@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Props {
   onAdd: (t: Transaction) => void;
@@ -29,7 +28,6 @@ interface Props {
 
 export default function AddTransactionDialog({ onAdd, categories }: Props) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<"income" | "expense">("expense");
   const [form, setForm] = useState({
     title: "",
     amount: "",
@@ -44,7 +42,7 @@ export default function AddTransactionDialog({ onAdd, categories }: Props) {
       id: Date.now().toString(),
       title: form.title,
       amount: parseFloat(form.amount),
-      type,
+      type: "expense",
       category: form.category,
       date: form.date,
       notes: form.notes,
@@ -66,26 +64,6 @@ export default function AddTransactionDialog({ onAdd, categories }: Props) {
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          {/* Type Toggle */}
-          <div className="flex rounded-lg border overflow-hidden">
-            {(["expense", "income"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setType(t)}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium transition-colors capitalize",
-                  type === t
-                    ? t === "income"
-                      ? "bg-emerald-500 text-white"
-                      : "bg-red-400 text-white"
-                    : "text-muted-foreground hover:bg-gray-50",
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 space-y-1.5">
               <Label>Title</Label>

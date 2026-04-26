@@ -1,30 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionTable from "@/components/transactions/TransactionTable";
 import AddTransactionDialog from "@/components/transactions/AddTransactionDialog";
 import { Transaction, Category } from "@/lib/types";
-import { mockTransactions, mockCategories } from "@/lib/mock-data";
+import { mockCategories } from "@/lib/mock-data";
 import ManageCategoriesDialog from "@/components/categories/ManageCategoriesDialog";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapDoc(doc: any): Transaction {
+  return {
+    id: String(doc._id),
+    title: doc.title,
+    amount: doc.amount,
+    type: doc.type,
+    category: doc.category,
+    date: doc.date,
+    notes: doc.notes,
+  };
+}
+
 export default function TransactionsPage() {
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [incomeIds, setIncomeIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [category, setCategory] = useState("all");
   const [sortField, setSortField] = useState<"date" | "amount">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [categories, setCategories] = useState<Category[]>(mockCategories);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/transactions").then((r) => r.json()),
+      fetch("/api/income").then((r) => r.json()),
+    ])
+      .then(([txData, incomeData]) => {
+        const txList: Transaction[] = Array.isArray(txData) ? txData.map(mapDoc) : [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const incomeList: Transaction[] = Array.isArray(incomeData)
+          ? incomeData.map((doc: any) => ({
+              id: String(doc._id),
+              title: doc.title,
+              amount: doc.amount,
+              type: "income" as const,
+              category: doc.category,
+              date: doc.date,
+              notes: doc.notes,
+            }))
+          : [];
+        const merged = [...txList, ...incomeList].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+        setIncomeIds(new Set(incomeList.map((i) => i.id)));
+        setTransactions(merged);
+      })
+      .catch(() => setTransactions([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = useCallback(async (t: Transaction) => {
+    const res = await fetch("/api/transactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: t.title,
+        amount: t.amount,
+        type: t.type,
+        category: t.category,
+        date: t.date,
+        notes: t.notes,
+      }),
+    });
+    const doc = await res.json();
+    if (res.ok) setTransactions((prev) => [mapDoc(doc), ...prev]);
+  }, []);
+
+  const handleDelete = useCallback(async (id: string) => {
+    const endpoint = incomeIds.has(id) ? `/api/income/${id}` : `/api/transactions/${id}`;
+    const res = await fetch(endpoint, { method: "DELETE" });
+    if (res.ok) setTransactions((prev) => prev.filter((t) => t.id !== id));
+  }, [incomeIds]);
+
   const handleAddCategory = (c: Category) =>
     setCategories((prev) => [...prev, c]);
   const handleDeleteCategory = (id: string) =>
     setCategories((prev) => prev.filter((c) => c.id !== id));
-
-  const handleAdd = (t: Transaction) => setTransactions((prev) => [t, ...prev]);
-  const handleDelete = (id: string) =>
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
 
   const handleSort = (field: "date" | "amount") => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -54,12 +117,9 @@ export default function TransactionsPage() {
 
   return (
     <div className="p-6 space-y-5 max-w-6xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Transactions
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {filtered.length} transactions
           </p>
@@ -74,7 +134,6 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border p-4">
           <p className="text-xs text-muted-foreground">Filtered Income</p>
@@ -98,7 +157,6 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <TransactionFilters
         search={search}
         type={type}
@@ -109,9 +167,9 @@ export default function TransactionsPage() {
         categories={categories}
       />
 
-      {/* Table */}
       <TransactionTable
         transactions={filtered}
+        loading={loading}
         onDelete={handleDelete}
         onSort={handleSort}
         sortField={sortField}

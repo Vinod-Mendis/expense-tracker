@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
   transactions: Transaction[];
+  loading?: boolean;
   onDelete: (id: string) => void;
   onSort: (field: "date" | "amount") => void;
   sortField: "date" | "amount";
@@ -33,6 +34,7 @@ const categoryColors: Record<string, string> = {
 
 export default function TransactionTable({
   transactions,
+  loading,
   onDelete,
   onSort,
   sortField,
@@ -52,12 +54,15 @@ export default function TransactionTable({
                 className="flex items-center gap-1 hover:text-foreground"
               >
                 Date
-                <ArrowUpDown
-                  className={cn(
-                    "w-3 h-3",
-                    sortField === "date" && "text-emerald-500",
-                  )}
-                />
+                {sortField === "date" ? (
+                  sortDir === "asc" ? (
+                    <ArrowUp className="w-3 h-3 text-emerald-500" />
+                  ) : (
+                    <ArrowDown className="w-3 h-3 text-emerald-500" />
+                  )
+                ) : (
+                  <ArrowUpDown className="w-3 h-3" />
+                )}
               </button>
             </TableHead>
             <TableHead>
@@ -66,19 +71,29 @@ export default function TransactionTable({
                 className="flex items-center gap-1 hover:text-foreground"
               >
                 Amount
-                <ArrowUpDown
-                  className={cn(
-                    "w-3 h-3",
-                    sortField === "amount" && "text-emerald-500",
-                  )}
-                />
+                {sortField === "amount" ? (
+                  sortDir === "asc" ? (
+                    <ArrowUp className="w-3 h-3 text-emerald-500" />
+                  ) : (
+                    <ArrowDown className="w-3 h-3 text-emerald-500" />
+                  )
+                ) : (
+                  <ArrowUpDown className="w-3 h-3" />
+                )}
               </button>
             </TableHead>
             <TableHead className="w-10"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.length === 0 && (
+          {loading && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                Loading...
+              </TableCell>
+            </TableRow>
+          )}
+          {!loading && transactions.length === 0 && (
             <TableRow>
               <TableCell
                 colSpan={6}
@@ -88,7 +103,7 @@ export default function TransactionTable({
               </TableCell>
             </TableRow>
           )}
-          {transactions.map((t) => (
+          {!loading && transactions.map((t) => (
             <TableRow key={t.id} className="hover:bg-gray-50/50">
               <TableCell>
                 <div
